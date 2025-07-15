@@ -18,6 +18,16 @@ function App() {
     setForm({ name: '', email: '' })
   }
 
+  const deleteUser = async (userId) => {
+    try {
+      await axios.delete(`${API}/${userId}`)
+      setUsers(users.filter(user => user.id !== userId))
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      alert('Failed to delete user')
+    }
+  }
+
   return (
     <div>
       <h1>User Manager</h1>
@@ -36,7 +46,23 @@ function App() {
       </form>
       <ul>
         { users.length > 0 ? users.map((u) => (
-          <li key={u.id}>{u.name} - {u.email}</li>
+          <li key={u.id} style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>{u.name} - {u.email}</span>
+            <button 
+              onClick={() => deleteUser(u.id)}
+              style={{ 
+                background: '#ff4444', 
+                color: 'white', 
+                border: 'none', 
+                padding: '5px 10px',
+                borderRadius: '3px',
+                cursor: 'pointer',
+                marginLeft: '10px'
+              }}
+            >
+              Delete
+            </button>
+          </li>
         )) : <li>No users found</li>}
       </ul>
     </div>
