@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 
-const API = 'https://6zwq0lsag4.execute-api.us-east-1.amazonaws.com/dev/users'
+const API = 'https://cxh4zjs1lg.execute-api.us-east-1.amazonaws.com/dev/users'
 
 function App() {
   const [users, setUsers] = useState([])
