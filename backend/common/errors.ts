@@ -27,6 +27,10 @@ export const handleBadRequestError = (message: string) => {
     return createResponse(400, { message })
 }
 
+export const handleConflictError = (message: string) => {
+    return createResponse(409, { message })
+}
+
 export const handleInternalError = (error: any) => {
     return createResponse(500, {
         message: 'Internal server error',

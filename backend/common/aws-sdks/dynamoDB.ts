@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb'
+import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, UpdateCommand, DeleteCommand, QueryCommand } from '@aws-sdk/lib-dynamodb'
 
 interface User {
     id: string
@@ -27,7 +27,27 @@ const dynamoDb = DynamoDBDocumentClient.from(client)
 const TABLE_NAME = process.env.USERS_TABLE || 'Users'
 
 export class DynamoDBService {
+    static async getUserByEmail(email: string): Promise<User | null> {
+        const command = new QueryCommand({
+            TableName: TABLE_NAME,
+            IndexName: 'EmailIndex',
+            KeyConditionExpression: 'email = :email',
+            ExpressionAttributeValues: {
+                ':email': email
+            }
+        })
+
+        const result = await dynamoDb.send(command)
+        return result.Items && result.Items.length > 0 ? result.Items[0] as User : null
+    }
+
     static async createUser(userData: CreateUserRequest & { id: string; createdAt: string; updatedAt: string }): Promise<User> {
+        // Check if email already exists
+        const existingUser = await this.getUserByEmail(userData.email)
+        if (existingUser) {
+            throw new Error('Email already exists')
+        }
+
         const command = new PutCommand({
             TableName: TABLE_NAME,
             Item: userData,
@@ -79,6 +99,14 @@ export class DynamoDBService {
         const existingUser = await this.getUserById(userId)
         if (!existingUser) {
             return null
+        }
+
+        // If updating email, check if new email already exists
+        if (updateData.email && updateData.email !== existingUser.email) {
+            const emailExists = await this.getUserByEmail(updateData.email)
+            if (emailExists) {
+                throw new Error('Email already exists')
+            }
         }
 
         // Build update expression

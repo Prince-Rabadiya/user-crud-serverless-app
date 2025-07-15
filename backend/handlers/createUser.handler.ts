@@ -2,7 +2,7 @@ import { APIGatewayProxyHandler } from 'aws-lambda'
 import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
 import { DynamoDBService } from '../common/aws-sdks/dynamoDB'
-import { handleValidationError, handleInternalError, handleSuccessResponse } from '../common/errors'
+import { handleValidationError, handleInternalError, handleSuccessResponse, handleConflictError } from '../common/errors'
 
 // Zod schema for user validation
 const userSchema = z.object({
@@ -31,6 +31,9 @@ const createUserHandler: APIGatewayProxyHandler = async (event) => {
     } catch (error: any) {
         if (error instanceof z.ZodError) {
             return handleValidationError(error)
+        }
+        if (error.message === 'Email already exists') {
+            return handleConflictError(error.message)
         }
         return handleInternalError(error)
     }

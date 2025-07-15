@@ -1,7 +1,7 @@
 import { APIGatewayProxyHandler } from 'aws-lambda'
 import { z } from 'zod'
 import { DynamoDBService } from '../common/aws-sdks/dynamoDB'
-import { handleValidationError, handleNotFoundError, handleBadRequestError, handleInternalError, handleSuccessResponse } from '../common/errors'
+import { handleValidationError, handleNotFoundError, handleBadRequestError, handleInternalError, handleSuccessResponse, handleConflictError } from '../common/errors'
 
 // Zod schema for user update validation
 const updateUserSchema = z.object({
@@ -35,6 +35,9 @@ const updateUserHandler: APIGatewayProxyHandler = async (event) => {
         }
         if (error.message === 'No fields to update') {
             return handleBadRequestError('No fields to update')
+        }
+        if (error.message === 'Email already exists') {
+            return handleConflictError('Email already exists')
         }
         return handleInternalError(error)
     }
